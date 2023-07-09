@@ -12,5 +12,5 @@ The dataset used for training and testing the classifier contains a collection o
 - Vectorization: The preprocessed text is transformed into numerical feature vectors using TF-IDF vectorization.
 - Classification: A Random Forest classifier is trained on the vectorized features to predict the email labels.
 
-The application is deployed on [Streamlit community cloud](https://email-classification.streamlit.app/). 
+Link to my application: [Email Classification](https://email-classification.streamlit.app/). 
 
