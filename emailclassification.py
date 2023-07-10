@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.svm import SVC
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.neural_network import MLPClassifier
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -89,33 +92,44 @@ def main():
     df['body'] = df['body'].apply(preprocess_text)
     df['email'] = df['subject'] + ' ' + df['body']
 
+    # Extract additional text-based features
+    df['email_length'] = df['email'].apply(len)
+    df['num_special_chars'] = df['email'].str.count(r'[^\w\s]')
+
     # Vectorize the text data
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(df['email'])
+    X_additional = df[['email_length', 'num_special_chars']].values
+    X = pd.DataFrame.sparse.from_spmatrix(X)
+    X = pd.concat([X, pd.DataFrame(X_additional, columns=['email_length', 'num_special_chars'])], axis=1)
     y = df['label']
 
-    # Train a Random Forest classifier
-    classifier = RandomForestClassifier()
-    classifier.fit(X, y)
+    # Initialize models
+    models = [
+        ('Support Vector Machine', SVC()),
+        ('Gradient Boosting Machine', GradientBoostingClassifier()),
+        ('Multi-Layer Perceptron', MLPClassifier())
+    ]
 
-    # User input
-    user_input_subject = st.text_input("Enter the email subject:")
-    user_input_body = st.text_area("Enter the email body:")
-    if st.button("Classify"):
-        if user_input_subject and user_input_body:
-            preprocessed_subject = preprocess_text(user_input_subject)
-            preprocessed_body = preprocess_text(user_input_body)
-            preprocessed_email = preprocessed_subject + ' ' + preprocessed_body
-            vectorized_email = vectorizer.transform([preprocessed_email])
-            prediction = classifier.predict(vectorized_email)
-            st.write("Predicted Label:", prediction[0])
-        else:
-            st.write("Please enter both the email subject and body.")
+    # Train and evaluate models using cross-validation
+    evaluation_metrics = {
+        'Accuracy': accuracy_score,
+        'Precision': precision_score,
+        'Recall': recall_score,
+        'F1-Score': f1_score,
+        'AUC-ROC': roc_auc_score
+    }
 
-    # Calculate and display accuracy
-    y_pred = classifier.predict(X)
-    accuracy = accuracy_score(y, y_pred)
-    st.write("Accuracy:", accuracy)
+    for model_name, model in models:
+        st.write(f"Model: {model_name}")
+        scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+        st.write("Cross-Validation Accuracy:", scores.mean())
+
+        model.fit(X, y)
+        y_pred = model.predict(X)
+        for metric_name, metric_func in evaluation_metrics.items():
+            metric_value = metric_func(y, y_pred)
+            st.write(f"{metric_name}: {metric_value}")
 
 if __name__ == '__main__':
     main()
