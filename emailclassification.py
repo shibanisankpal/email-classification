@@ -120,12 +120,5 @@ def main():
     f1 = f1_score(y, y_pred, pos_label='spam')
     auc_roc = roc_auc_score(y, classifier.predict_proba(X)[:, 1])
 
-    st.write("Evaluation Metrics:")
-    st.write("Accuracy:", accuracy)
-    st.write("Precision (Spam):", precision)
-    st.write("Recall (Spam):", recall)
-    st.write("F1-Score (Spam):", f1)
-    st.write("AUC-ROC:", auc_roc)
-
 if __name__ == '__main__':
     main()
