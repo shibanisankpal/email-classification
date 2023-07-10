@@ -3,7 +3,6 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -95,12 +94,9 @@ def main():
     X = vectorizer.fit_transform(df['email'])
     y = df['label']
 
-    # Split the data into train and test sets (90% for training, 10% for evaluation)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-
     # Train an AdaBoost classifier
     classifier = AdaBoostClassifier()
-    classifier.fit(X_train, y_train)
+    classifier.fit(X, y)
 
     # User input
     user_input_subject = st.text_input("Enter the email subject:")
@@ -116,9 +112,9 @@ def main():
         else:
             st.write("Please enter both the email subject and body.")
 
-    # Evaluate the model on the test set
-    y_pred = classifier.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
+    # Evaluate the model on the entire dataset
+    y_pred = classifier.predict(X)
+    accuracy = accuracy_score(y, y_pred)
     st.write("Accuracy:", accuracy)
 
 if __name__ == '__main__':
