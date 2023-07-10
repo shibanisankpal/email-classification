@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -115,7 +115,17 @@ def main():
     # Evaluate the model on the entire dataset
     y_pred = classifier.predict(X)
     accuracy = accuracy_score(y, y_pred)
+    precision = precision_score(y, y_pred, pos_label='spam')
+    recall = recall_score(y, y_pred, pos_label='spam')
+    f1 = f1_score(y, y_pred, pos_label='spam')
+    auc_roc = roc_auc_score(y, classifier.predict_proba(X)[:, 1])
+
+    st.write("Evaluation Metrics:")
     st.write("Accuracy:", accuracy)
+    st.write("Precision (Spam):", precision)
+    st.write("Recall (Spam):", recall)
+    st.write("F1-Score (Spam):", f1)
+    st.write("AUC-ROC:", auc_roc)
 
 if __name__ == '__main__':
     main()
